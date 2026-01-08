@@ -1,0 +1,16 @@
+# === Pod 启动后的文件系统结构 ===
+/etc/config/
+├── app.message       # 文件内容: "Hello Kubernetes!"
+├── app.name         # 文件内容: "DemoApplication"
+└── app.version      # 文件内容: "1.0.0"
+
+# === Spring Boot 如何读取这些配置 ===
+# Spring Boot 会将 configtree:/etc/config/ 下的文件映射为属性：
+# app.message -> app.message = "Hello Kubernetes!"
+# app.name -> app.name = "DemoApplication"
+# app.version -> app.version = "1.0.0"
+
+# === 等效的 application.properties 配置 ===
+app.message=Hello Kubernetes!
+app.name=DemoApplication
+app.version=1.0.0

@@ -1,0 +1,42 @@
+version: '3.8'
+# for docker test no kubernates
+
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: mydatabase
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+  spring-boot-app:
+    build: .                     # 使用当前目录下的 Dockerfile 构建镜像
+    image: kub_demo1:0.0.1       # 构建后镜像
+    container_name: spring-boot-app
+    ports:
+      - "28080:8080"
+      - "28081:8081"
+    environment:
+      MONGO_URL: mongodb
+      MONGO_USERNAME: mongoadmin
+      MONGO_PASSWORD: secret
+      MONGO_DATABASE: mydatabase
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge

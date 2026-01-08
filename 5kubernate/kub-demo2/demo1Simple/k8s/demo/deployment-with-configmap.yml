@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: app
+  template:
+    metadata:
+      labels:
+        role: app
+    spec:
+      containers:
+      - name: app
+        image: mwu/spring-on-k8s:latest
+        env:
+        # 引用 app-config ConfigMap
+        - name: APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config  # Kustomize 会自动替换为 app-config-b7c9d2k8m5
+              key: app.name
+        
+        - name: APP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: app.version
+        
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: database.url
+        
+        # 挂载整个 ConfigMap 作为文件
+        volumeMounts:
+        - name: app-config-volume
+          mountPath: /etc/app-config
+          readOnly: true
+        
+        - name: api-config-volume
+          mountPath: /etc/api-config
+          readOnly: true
+      
+      volumes:
+      - name: app-config-volume
+        configMap:
+          name: app-config  # Kustomize 会自动替换为带哈希的名称
+      
+      - name: api-config-volume
+        configMap:
+          name: api-config

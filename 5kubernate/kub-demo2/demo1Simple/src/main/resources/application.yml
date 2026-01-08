@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: spring-on-k8s
+
+
+server:
+  port: 8080
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Enable actuator endpoints:
+        #  - health: used by LivenessProbe and ReadinessProbe to verify if this app is actually running
+        #  - prometheus: used by Prometheus to scrape app metrics
+        include: health, prometheus
+
+  endpoint:
+    health:
+      probes:
+        # Always enable health probes: whenever you build native images with GraalVM,
+        # you need to set this property to true.
+        enabled: true
+        # Health probes are also available on the main server port
+        # with /readyz and /livez
+        add-additional-paths: true
+  server:
+    # Expose actuator endpoints on a different port to improve security.
+    port: 8081

@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+# 命名原則：
+#小寫字母 + 數字 + 連字符
+#最大 63 字符
+#描述性和有意義
+#命名空間內唯一
+#遵循 DNS 標籤規則
+metadata:
+  name: sample-spring-boot-on-kubernetes-deployment
+spec:
+  selector:
+    matchLabels:
+      app: sample-spring-boot-on-kubernetes
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+      labels:
+        app: sample-spring-boot-on-kubernetes
+    spec:
+      containers:
+        - name: sample-spring-boot-on-kubernetes
+          image: piomin/sample-spring-boot-on-kubernetes:latest
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 8081
+              name: mgmt
+          env:
+            - name: MONGO_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mongodb
+                  key: database-name
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: database-user
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: database-password
+            - name: MONGO_URL
+              value: mongodb
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health
+              scheme: HTTP
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            initialDelaySeconds: 30
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health
+              scheme: HTTP
+            timeoutSeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+            initialDelaySeconds: 60
+          resources:
+            limits:
+              memory: 740Mi
+              cpu: '2'
+            requests:
+              memory: 384Mi
+              cpu: 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-spring-boot-on-kubernetes
+spec:
+  type: NodePort
+  selector:
+    app: sample-spring-boot-on-kubernetes
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+      name: http
+    - port: 8081
+      targetPort: 8081
+      nodePort: 30081
+      name: mgmt

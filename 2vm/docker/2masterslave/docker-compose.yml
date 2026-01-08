@@ -1,0 +1,39 @@
+services:
+  redis1:
+    image: redis:latest
+    container_name: redis_cache1
+    command:  ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis_cache1_data:/data
+    restart: unless-stopped
+
+
+
+#docker user-defined networks are isolated — containers on different networks can't
+#reach each other by service name or their internal IPs, so the replica must be on a network that can reach the master.
+# Replication needs the replica to open a TCP connection to the master. Putting both containers on the same network makes the master reachable by IP or service name and enables Docker DNS resolution.
+# Alternatives (how you can make the replica reach the master)
+# Attach the replica to the master’s network (temporary, without changing compose):
+# docker network connect redis_net1 cluster_redis2
+# This adds cluster_redis2 to redis_net1 so it can reach redis1 internally
+
+  redis2:
+    image: redis:latest
+    container_name: redis_cache2
+    command:  ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis_cache2_data:/data
+    restart: unless-stopped
+
+
+
+volumes:
+  redis_cache1_data:
+  redis_cache2_data:
+

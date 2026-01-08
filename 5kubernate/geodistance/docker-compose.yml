@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - appnet
+    restart: always
+
+  geodistance:
+    image: geodistance:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geodistance
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env  # Use the .env file for environment variables
+    ports:
+      - "1441:1441"
+    environment:
+      SERVER_PORT: "1441"
+      SPRING_APPLICATION_NAME: "geodistance"
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    networks:
+      - appnet
+    restart: always
+
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local

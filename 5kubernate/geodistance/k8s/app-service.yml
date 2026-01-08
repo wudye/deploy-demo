@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: geodistance
+  namespace: default
+spec:
+    selector:
+        app: geodistance
+    ports:
+        - name: http
+          port: 1442
+          targetPort: 1442
+    type: ClusterIP

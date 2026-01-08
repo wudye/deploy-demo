@@ -1,0 +1,21 @@
+# overlays/prod/kustomization.yml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: spring-on-k8s-prod
+bases:
+- ../../base
+
+configMapGenerator:
+- name: config
+  behavior: merge
+  literals:
+    - app.message=Hello Production!
+    - app.environment=prod
+    - debug.enabled=false
+    - logging.level.root=WARN
+    - database.maxConnections=50
+    - cache.ttl=600
+
+patchesStrategicMerge:
+- deployment-prod.yml
+- service-prod.yml

@@ -1,0 +1,117 @@
+version: "3.8"
+services:
+  redis-6379:
+    image: redis:latest
+    container_name: redis-6379
+    command: [ "redis-server", "/usr/local/etc/redis/redis-6379.conf" ]
+    ports:
+      - "6379:6379"
+      - "16379:16379"
+    volumes:
+      - credis-data-6379:/data
+      - ./redis/redis-6379.conf:/usr/local/etc/redis/redis-6379.conf:ro
+    restart: always
+
+  redis-6380:
+    image: redis:latest
+    container_name: redis-6380
+    command: [ "redis-server", "/usr/local/etc/redis/redis-6380.conf" ]
+    ports:
+      - "6380:6380"
+      - "16380:16380"
+    volumes:
+      - credis-data-6380:/data
+      - ./redis/redis-6380.conf:/usr/local/etc/redis/redis-6380.conf:ro
+    restart: always
+
+  redis-6381:
+    image: redis:latest
+    container_name: redis-6381
+    command: [ "redis-server", "/usr/local/etc/redis/redis-6381.conf" ]
+    ports:
+      - "6381:6381"
+      - "16381:16381"
+    volumes:
+      - credis-data-6381:/data
+      - ./redis/redis-6381.conf:/usr/local/etc/redis/redis-6381.conf:ro
+    restart: always
+
+  redis-6382:
+    image: redis:latest
+    container_name: redis-6382
+    command: [ "redis-server", "/usr/local/etc/redis/redis-6382.conf" ]
+    ports:
+      - "6382:6382"
+      - "16382:16382"
+    volumes:
+      - credis-data-6382:/data
+      - ./redis/redis-6382.conf:/usr/local/etc/redis/redis-6382.conf:ro
+    restart: always
+
+  redis-6383:
+    image: redis:latest
+    container_name: redis-6383
+    command: [ "redis-server", "/usr/local/etc/redis/redis-6383.conf" ]
+    ports:
+      - "6383:6383"
+      - "16383:16383"
+    volumes:
+      - credis-data-6383:/data
+      - ./redis/redis-6383.conf:/usr/local/etc/redis/redis-6383.conf:ro
+    restart: always
+
+  redis-6384:
+    image: redis:latest
+    container_name: redis-6384
+    command: [ "redis-server", "/usr/local/etc/redis/redis-6384.conf" ]
+    ports:
+      - "6384:6384"
+      - "16384:16384"
+    volumes:
+      - credis-data-6384:/data
+      - ./redis/redis-6384.conf:/usr/local/etc/redis/redis-6384.conf:ro
+    restart: always
+  cluster-init:
+    image: redis:latest
+    container_name: redis-cluster-init
+    depends_on:
+      - redis-6379
+      - redis-6380
+      - redis-6381
+      - redis-6382
+      - redis-6383
+      - redis-6384
+    #    entrypoint: >
+    #      /bin/sh -c "
+    #      echo 'waiting for redis nodes...';
+    #      for h in redis-6379:6379 redis-6380:6380 redis-6381:6381 redis-6382:6382 redis-6383:6383 redis-6384:6384; do
+    #        host=\$(echo \$h | cut -d: -f1); port=\$(echo \$h | cut -d: -f2);
+    #        until redis-cli -h \$host -p \$port -a 123456789 ping >/dev/null 2>&1; do sleep 1; done;
+    #      done;
+    #      echo 'creating cluster...';
+    #      yes yes | redis-cli --cluster create redis-6379:6379 redis-6380:6380 redis-6381:6381 redis-6382:6382 redis-6383:6383 redis-6384:6384 --cluster-replicas 1 -a 123456789;
+    #      echo 'cluster created';
+    #      sleep 2;
+    #      "
+    #    restart: "no"
+
+    volumes:
+      - ./redis/create-cluster.sh:/docker/redis/create-cluster.sh:ro
+    entrypoint: [ "/bin/sh", "/docker/redis/create-cluster.sh" ]
+    restart: "no"
+
+
+
+
+
+
+
+
+
+volumes:
+  credis-data-6379:
+  credis-data-6380:
+  credis-data-6381:
+  credis-data-6382:
+  credis-data-6383:
+  credis-data-6384:

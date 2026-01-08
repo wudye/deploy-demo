@@ -1,0 +1,104 @@
+# --- Start of the Deployment Object ---
+# A Deployment tells Kubernetes HOW to run your application.
+# It manages creating and updating instances of your app (Pods).
+
+# apiVersion specifies which version of the Kubernetes API you're using to create this object.
+apiVersion: apps/v1
+# kind specifies the type of object you want to create. Here, it's a Deployment.
+kind: Deployment
+# metadata contains data that helps uniquely identify the object, like its name.
+metadata:
+  # name is the name of our Deployment. We'll use this name to refer to it later.
+  name: my-spring-boot-app
+
+# spec is where you describe the desired state for the Deployment.
+spec:
+  # replicas is the number of identical copies (Pods) of your application to run.
+  replicas: 1
+  # selector tells the Deployment which Pods to manage. It finds Pods that have matching labels.
+  selector:
+    # matchLabels is the rule for matching. It must match the labels defined in the Pod template below.
+    matchLabels:
+      # This label says "find all pods that have the label 'app' set to 'my-spring-boot-app'".
+      app: my-spring-boot-app
+
+  # template describes the Pods that will be created. The Deployment will create 'replicas' of this template.
+  template:
+    # metadata for the Pods. This is where we define the labels for the Pods.
+    metadata:
+      # labels are key/value pairs attached to objects. They are used by the selector to identify the Pods.
+      labels:
+        # This Pod gets a label 'app' with the value 'my-spring-boot-app', which matches the selector above.
+        app: my-spring-boot-app
+    # spec describes the desired state of the Pods themselves.
+    spec:
+      # containers is a list of one or more containers that should run inside the Pod.
+      containers:
+      # The name of the container inside the Pod.
+      - name: my-spring-boot-app
+        # image is the Docker container image to use for this container.
+        # IMPORTANT: You must build and push this image to a registry first.
+        image: my-spring-boot-app:latest
+        # ports lists the network ports that the container exposes.
+        ports:
+        # This container exposes port 8080 (where our Spring Boot app is running).
+        - containerPort: 8080
+
+        # readinessProbe: Checks if the container is ready to start accepting traffic.
+        # Kubernetes won't send traffic to the Pod until this probe succeeds.
+        readinessProbe:
+          # httpGet specifies that the probe will send an HTTP GET request.
+          httpGet:
+            # path is the URL path to request on the container.
+            path: /readyz
+            # port is the port to connect to on the container.
+            port: 8080
+          # initialDelaySeconds: How many seconds to wait after the container has started before performing the first probe.
+          initialDelaySeconds: 15
+          # periodSeconds: How often (in seconds) to perform the probe.
+          periodSeconds: 10
+
+        # livenessProbe: Checks if the container is still running correctly.
+        # If this probe fails, Kubernetes will restart the container.
+        livenessProbe:
+          # httpGet specifies an HTTP GET request for the probe.
+          httpGet:
+            # path is the URL path for the liveness check.
+            path: /livez
+            # port is the port to connect to.
+            port: 8080
+          # initialDelaySeconds: Wait 20 seconds before the first liveness probe to give the app time to start up.
+          initialDelaySeconds: 20
+          # periodSeconds: Perform the liveness check every 10 seconds.
+          periodSeconds: 10
+
+# --- (triple dash) separates different YAML documents (objects) in the same file.
+
+# --- Start of the Service Object ---
+# A Service provides a stable network endpoint (a single IP address and DNS name) for a set of Pods.
+# It acts as an internal load balancer.
+
+# apiVersion for a core Kubernetes object like a Service.
+apiVersion: v1
+# kind specifies that we are creating a Service object.
+kind: Service
+# metadata for the Service object.
+metadata:
+  # The name of our Service.
+  name: my-spring-boot-app-service
+
+# spec describes the desired state of the Service.
+spec:
+  # selector tells the Service which Pods to send traffic to. It finds Pods with matching labels.
+  # This MUST match the labels of the Pods created by the Deployment.
+  selector:
+    app: my-spring-boot-app
+  # ports defines how the Service exposes the Pods.
+  ports:
+    # protocol specifies the IP protocol. TCP is the default and most common.
+    - protocol: TCP
+      # port is the port that the Service itself will listen on (within the cluster).
+      port: 80
+      # targetPort is the port on the Pods that the traffic should be forwarded to.
+      # This should match the containerPort of your application.
+      targetPort: 8080

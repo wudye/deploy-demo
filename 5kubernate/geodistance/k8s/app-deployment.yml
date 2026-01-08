@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: geodistance
+  namespace: default
+
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+      app: geodistance
+  template:
+      metadata:
+          labels:
+              app: geodistance
+      spec:
+          containers:
+              - name: geodistance
+                image: geodistance:latest
+                ports:
+                    - containerPort: 1441
+                envFrom:
+                    - configMapRef:
+                        name: geo-app-config
+                readinessProbe:
+                  httpGet:
+                    path: /actuator/health/readiness
+                    port: 1441
+                  initialDelaySeconds: 10
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+                  failureThreshold: 10
+                livenessProbe:
+                  httpGet:
+                    path: /actuator/health/liveness
+                    port: 1441
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 10
+                startupProbe:
+                  httpGet:
+                    path: /actuator/health
+                    port: 1441
+                  failureThreshold: 30
+                  periodSeconds: 5

@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: keycloak-demo
+  thymeleaf:
+    prefix: classpath:/templates/
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "http://192.168.80.129:7080/realms/demo-realm"
+          # 可选备选：如果 discovery 失败，直接指定 JWKS：
+          jwk-set-uri: "http://192.168.80.129:7080/realms/demo-realm/protocol/openid-connect/certs"
+      client:
+        registration:
+          keycloak:
+            client-id: "demo-client"
+            client-secret: "Vj5Hmg3aY87oIkIGwF0eJlCsfNgNjS2P"
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            issuer-uri: "http://192.168.80.129:7080/realms/demo-realm"
+            user-name-attribute: preferred_username
+  # H2 数据库配置
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+
+app:
+  root-url: "http://localhost:8080/"
+  home-url: "http://localhost:8080/home"
+  keycloak:
+    authorize-url: "http://192.168.80.129:7080/realms/demo-realm/protocol/openid-connect/auth"
+    end-session-url: "http://192.168.80.129:7080/realms/demo-realm/protocol/openid-connect/logout"
+
+  oauth2:
+    client-id: "demo-client"
+    redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"

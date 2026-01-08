@@ -1,0 +1,35 @@
+
+services:
+  redis-6379:
+    image: redis:latest
+    container_name: redis-6379
+    command: ["redis-server", "/usr/local/etc/redis/redis-6379.conf"]
+    volumes:
+      - ./redis-6379.conf:/usr/local/etc/redis/redis-6379.conf
+      - ./data/6379:/data/6379
+    ports:
+      - "6379:6379"
+      - "16379:16379"   # ← ADD THIS (cluster bus)
+
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+  redis-6380:
+    image: redis:latest
+    container_name: redis-6380
+    command: ["redis-server", "/usr/local/etc/redis/redis-6380.conf"]
+    volumes:
+      - ./redis-6380.conf:/usr/local/etc/redis/redis-6380.conf
+      - ./data/6380:/data/6380
+    ports:
+      - "6380:6380"
+      - "16380:16380"   # ← ADD THIS (cluster bus)
+
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+networks:
+  redis-net:
+    driver: bridge

@@ -1,0 +1,108 @@
+version: "3.8"
+services:
+  redis1:
+    image: redis:latest
+    container_name: cluster_redis1_senital1
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "6379:6379"
+    networks:
+      redis_net1:
+        ipv4_address: 172.28.10.10
+    volumes:
+      - ./redis1/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis1_data_master1:/data
+    restart: unless-stopped
+
+
+
+# ocker user-defined networks are isolated — containers on different networks can't
+#reach each other by service name or their internal IPs, so the replica must be on a network that can reach the master.
+# Replication needs the replica to open a TCP connection to the master. Putting both containers on the same network makes the master reachable by IP or service name and enables Docker DNS resolution.
+# Alternatives (how you can make the replica reach the master)
+# Attach the replica to the master’s network (temporary, without changing compose):
+# docker network connect redis_net1 cluster_redis2
+# This adds cluster_redis2 to redis_net1 so it can reach redis1 internally
+
+  redis2:
+    image: redis:latest
+    container_name: cluster_redis2_senital2
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "6380:6379"
+    networks:
+      redis_net1:
+        ipv4_address: 172.28.10.11
+    volumes:
+      - ./redis2/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis2_data_slave1:/data
+    restart: unless-stopped
+
+  redis3:
+    image: redis:latest
+    container_name: cluster_redis2_senital3
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "6381:6379"
+    networks:
+      redis_net1:
+        ipv4_address: 172.28.10.12
+    volumes:
+      - ./redis3/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis3_data_slave1:/data
+    restart: unless-stopped
+
+
+
+  sentinel1:
+    image: redis:latest
+    container_name: sentinel_eshop01
+    command: ["redis-server", "/usr/local/etc/redis/sentinel.conf", "--sentinel"]
+    ports:
+      - "5000:5000"
+    networks:
+      redis_net1:
+        ipv4_address: 172.28.10.21
+    volumes:
+      - ./sentinel1/:/usr/local/etc/redis/
+    restart: unless-stopped
+
+  sentinel2:
+    image: redis:latest
+    container_name: sentinel_eshop02
+    command: ["redis-server", "/usr/local/etc/redis/sentinel.conf", "--sentinel"]
+    ports:
+      - "5001:5000"
+    networks:
+      redis_net1:
+        ipv4_address: 172.28.10.22
+    volumes:
+      - ./sentinel2/:/usr/local/etc/redis/
+    restart: unless-stopped
+
+  sentinel3:
+    image: redis:latest
+    container_name: sentinel_eshop03
+    command: ["redis-server", "/usr/local/etc/redis/sentinel.conf", "--sentinel"]
+    ports:
+      - "5002:5000"
+    networks:
+      redis_net1:
+        ipv4_address: 172.28.10.23
+    volumes:
+      - ./sentinel3/:/usr/local/etc/redis/
+    restart: unless-stopped
+
+networks:
+  redis_net1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.10.0/24
+          gateway: 172.28.10.1
+
+volumes:
+  redis1_data_master1:
+  redis2_data_slave1:
+  redis3_data_slave1:
+

@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb
+data:
+  database-name: mydatabase
+---
+apiVersion: v1
+# Secret 的值需要 Base64 編碼 kind: Secret
+#表示這是敏感資料
+kind: Secret
+metadata:
+  name: mongodb
+# type: Opaque
+#通用類型的 Secret
+type: Opaque
+# 這裡的值是 Base64 編碼後的結果
+# echo -n "secret" | base64          # 輸出: c2VjcmV0
+# echo -n "mongoadmin" | base64      # 輸出: bW9uZ29hZG1pbg==
+# echo "c2VjcmV0" | base64 -d        # 輸出: secret
+# echo "bW9uZ29hZG1pbg==" | base64 -d # 輸出: mongoadmin
+data:
+  database-password: c2VjcmV0
+  database-user: bW9uZ29hZG1pbg==
+# stringData:                    # ← 用 stringData 而不是 data
+#  database-password: secret    # ← 直接寫明文
+#  database-user: mongoadmin    # ← Kubernetes 會自動編碼
+# ase64 不是加密，只是編碼。任何人都可以解碼。Secret 的安全性來自於 Kubernetes 的存取控制（RBAC），不是編碼本身。
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:5.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mongodb
+                  key: database-name
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: database-user
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: database-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  ports:
+    - port: 27017
+      protocol: TCP
+  selector:
+    app: mongodb

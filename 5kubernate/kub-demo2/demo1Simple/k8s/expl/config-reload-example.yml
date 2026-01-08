@@ -1,0 +1,33 @@
+# === 配置更新流程 ===
+
+# 1. 修改 kustomization.yml 中的配置
+configMapGenerator:
+- name: config
+  literals:
+    - app.message=Hello Updated Kubernetes!  # 修改这一行
+    - app.name=DemoApplication
+    - app.version=1.1.0                     # 修改这一行
+
+# 2. 重新应用配置
+kubectl apply -k k8s/base
+
+# 3. Kustomize 会创建新的 ConfigMap
+#    config-8f2k3m9n1p (新的哈希)
+
+# 4. Deployment 会自动更新引用
+#    旧的 Pod 被终止，新的 Pod 启动
+
+# 5. 新 Pod 挂载新的配置文件
+#    /etc/config/app.message 现在包含新值
+
+# 6. 验证配置更新
+kubectl get configmap -n spring-on-k8s
+# NAME                     DATA   AGE
+# config-5dmt845m2h       3      10m  (旧版本)
+# config-8f2k3m9n1p       3      1m   (新版本)
+
+kubectl rollout status deployment/app -n spring-on-k8s
+# deployment "app" successfully rolled out
+
+curl http://localhost/config-demo
+# App: DemoApplication, Version: 1.1.0, Message: Hello Updated Kubernetes!

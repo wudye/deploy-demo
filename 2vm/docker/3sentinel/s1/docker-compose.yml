@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  redis-master:
+    image: redis:latest
+    container_name: redis-master
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis-master.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis-master-data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+  sentinel-1:
+    image: redis:latest
+    container_name: sentinel-1
+    command: ["redis-sentinel", "/usr/local/etc/sentinel/sentinel.conf"]
+    volumes:
+      - ./sentinel-1.conf:/usr/local/etc/sentinel/sentinel.conf
+      - ./sentinel-1-data:/data
+    ports:
+      - "26379:26379"
+    depends_on:
+      - redis-master
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+networks:
+  redis-net:
+    driver: bridge

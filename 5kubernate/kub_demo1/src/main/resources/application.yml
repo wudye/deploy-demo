@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: sample-spring-boot-on-kubernetes
+  data:
+    mongodb:
+      host: ${MONGO_URL:localhost}
+      port: 27017
+      username: ${MONGO_USERNAME:mongoadmin}
+      password: ${MONGO_PASSWORD:secret}
+      database: ${MONGO_DATABASE:mydatabase}
+      authentication-database: admin
+#logging:
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} ${LOG_LEVEL_PATTERN:-%5p} %m%n"
+
+management:
+  endpoints:
+    # web 指的是透過 HTTP 協議暴露的端點
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    # 表示健康檢查端點會顯示詳細資訊，而不僅僅是簡單的狀態（如 UP 或 DOWN）。
+    health:
+      show-details: always
+      # group.readiness 定義了一個名為 readiness 的健康檢查分組。該分組包含了 mongo 健康指標，並且通過 additional-path: server:/readiness
+      # 指定了一個額外的 HTTP 路徑來存取該分組的健康狀態。這樣可以將應用的就緒狀態與其他健康檢查分開，便於 Kubernetes 等平台進行探測。
+      group:
+        readiness:
+          include: mongo
+          additional-path: server:/readiness
+        # probes.enabled: true 啟用了健康檢查探測（Probes），
+        # 這通常用於與 Kubernetes 的 liveness 和 readiness 探針集成，確保應用在運行時能夠正確回應健康檢查請求
+      probes:
+        enabled: true
+    prometheus:
+      access: unrestricted
+  server:
+    port: 8081
+
+#management.endpoint.health.group.live.additional-path="server:/healthz"
+
+# pring.output.ansi.enabled: ALWAYS 表示啟用了 ANSI 色彩輸出，確保日誌在控制台中顯示時會使用顏色來區分不同的訊息。這對於快速辨識日誌的關鍵部分（如錯誤或警告）非常有用。
+spring.output.ansi.enabled: ALWAYS
+#logging.pattern.console: "%clr(%d{HH:mm:ss.SSS}){blue} %clr(%5p) %clr(---){cyan} %clr([%15.15t]){yellow} %clr(:){red} %clr(%m){magenta}%n"

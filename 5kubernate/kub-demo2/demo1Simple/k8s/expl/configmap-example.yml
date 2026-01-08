@@ -1,0 +1,18 @@
+# === kustomization.yml 中定义的 configMapGenerator ===
+configMapGenerator:
+- name: config
+  literals:
+    - app.message=Hello Kubernetes!
+    - app.name=DemoApplication
+    - app.version=1.0.0
+
+# === Kustomize 自动生成的 ConfigMap ===
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-5dmt845m2h  # 原名 + 哈希后缀
+  namespace: spring-on-k8s
+data:
+  app.message: "Hello Kubernetes!"
+  app.name: "DemoApplication"
+  app.version: "1.0.0"

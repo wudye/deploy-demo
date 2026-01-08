@@ -1,0 +1,26 @@
+# === Deployment 配置部分详解 ===
+spec:
+  containers:
+  - name: app
+    image: mwu/spring-on-k8s
+    
+    # === 环境变量配置 ===
+    env:
+    # Spring Boot 配置导入方式
+    - name: SPRING_CONFIG_IMPORT
+      # 告诉 Spring Boot 从 /etc/config/ 目录加载配置
+      # configtree: 是 Spring Boot 2.4+ 的配置树格式
+      value: configtree:/etc/config/
+    
+    # === 卷挂载配置 ===
+    volumeMounts:
+    - mountPath: /etc/config     # 容器内挂载点
+      name: config              # 引用下面定义的卷名
+  
+  # === 卷定义 ===
+  volumes:
+  - name: config                # 卷名称
+    configMap:
+      name: config              # Kustomize 会自动替换为: config-5dmt845m2h
+      # 默认情况下，ConfigMap 的所有 key 都会作为文件
+      # 文件名 = key，文件内容 = value

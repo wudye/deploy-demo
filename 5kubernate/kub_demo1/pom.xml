@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.3</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.mwu</groupId>
+    <artifactId>kub_demo1</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>kub_demo1</name>
+    <description>kub_demo1</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
+    <properties>
+        <java.version>21</java.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.instancio</groupId>
+            <artifactId>instancio-junit</artifactId>
+            <version>5.4.1</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.cloud.tools/jib-maven-plugin -->
+        <dependency>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- 不排除 spring-boot-devtools 依赖
+开发工具会包含在生产镜像中 -->
+                    <excludeDevtools>false</excludeDevtools>
+                    <!-- 使用 Spring Boot Buildpacks 构建容器镜像 -->
+                    <image>
+                        <env>
+                            <!-- 设置 JVM 最大堆内存占比为 75% -->
+                            <BPL_JVM_HEAP_SIZE>75%</BPL_JVM_HEAP_SIZE>
+                            <!-- 设置容器内应用端口 -->
+                            <BPL_HTTP_PORT>8080</BPL_HTTP_PORT>
+                            <!-- 设置JVM 最大线程数为 50 -->
+                            <BPL_JVM_THREAD_COUNT>50</BPL_JVM_THREAD_COUNT>
+                        </env>
+                    </image>
+                    <!-- 设置生成的容器镜像名称
+                    mvn spri这会创建一个包含你的应用的 Docker 镜像，可以推送到容器注册表并在 Kubernetes 中部署。
+                    这个配置是为了云原生部署（如 Kubernetes）准备的。
+                    -->
+                    <imageName>piomin/sample-spring-boot-on-kubernetes:${project.version}</imageName>
+                    <!--					<image>-->
+                    <!--						<builder>gcr.io/buildpacks/builder:v1</builder>-->
+                    <!--					</image>-->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>jib</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <configuration>
+
+                            <!--                            <from>-->
+                            <!--                                <image>eclipse-temurin:21-jdk-ubi9-minimal</image>-->
+                            <!--                                <configuration>-->
+                            <to>piomin/sample-spring-boot-on-kubernetes:${project.version}</to>
+                            <!--                                <allowInsecureRegistries>true</allowInsecureRegistries>-->
+                            <!--                                <to>172.17.0.2:5000/root/sample-spring-boot-on-kubernetes</to>-->
+                            <!--                            </from>-->
+                            <container>
+                                <jvmFlags>
+                                    <jvmFlag>-Xms256m</jvmFlag>
+                                    <jvmFlag>-Xmx256m</jvmFlag>
+                                </jvmFlags>
+                            </container>
+
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

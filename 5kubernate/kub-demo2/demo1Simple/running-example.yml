@@ -1,0 +1,42 @@
+# === 完整的工作流程演示 ===
+
+# 1. 查看生成的 ConfigMap
+kubectl get configmap -n spring-on-k8s
+# NAME                     DATA   AGE
+# config-5dmt845m2h       3      5m
+
+# 2. 查看 ConfigMap 内容
+kubectl describe configmap config-5dmt845m2h -n spring-on-k8s
+# Name:         config-5dmt845m2h
+# Namespace:    spring-on-k8s
+# Labels:       <none>
+# Annotations:  <none>
+#
+# Data
+# ====
+# app.message:
+# ----
+# Hello Kubernetes!
+# app.name:
+# ----
+# DemoApplication
+# app.version:
+# ----
+# 1.0.0
+
+# 3. 进入 Pod 查看挂载的文件
+kubectl exec -n spring-on-k8s deployment/app -- ls -la /etc/config/
+# -rw-r--r--    1 root     root            19 Oct 15 08:30 app.message
+# -rw-r--r--    1 root     root            15 Oct 15 08:30 app.name
+# -rw-r--r--    1 root     root             7 Oct 15 08:30 app.version
+
+# 4. 查看文件内容
+kubectl exec -n spring-on-k8s deployment/app -- cat /etc/config/app.message
+# Hello Kubernetes!
+
+# 5. 测试应用端点
+curl http://localhost/config-demo
+# App: DemoApplication, Version: 1.0.0, Message: Hello Kubernetes!
+
+curl http://localhost/
+# Welcome to DemoApplication! Hello Kubernetes!

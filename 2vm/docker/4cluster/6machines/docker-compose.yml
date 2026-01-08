@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7.0
+    container_name: redis
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data:/data
+    ports:
+      - "6379:6379"
+      - "16379:16379"   # Cluster bus port (必须开放)
+    restart: unless-stopped
+    network_mode: host

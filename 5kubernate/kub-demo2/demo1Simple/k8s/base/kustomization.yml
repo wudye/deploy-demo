@@ -1,0 +1,28 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: spring-on-k8s
+resources:
+- namespace.yml
+- deployment.yml
+- service.yml
+
+
+# 作用机制
+#自动生成：Kustomize 会根据配置自动创建 ConfigMap
+#哈希命名：生成的 ConfigMap 会有唯一的哈希后缀
+#版本控制：配置变更时会自动生成新的版本
+#引用更新：自动更新引用该 ConfigMap 的资源
+configMapGenerator:
+- name: config
+  literals:
+    - app.message=Hello Kubernetes!
+
+# Kustomize 自动生成
+# apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: config-5dmt845m2h  # 原名 + 随机哈希
+#  namespace: spring-on-k8s
+#data:
+#  app.message: "Hello Kubernetes!"

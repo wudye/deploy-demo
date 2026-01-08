@@ -1,0 +1,36 @@
+
+services:
+  redis-replica-1:
+    image: redis:latest
+    container_name: redis-replica-1
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis-replica-1.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis-replica-1-data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+  sentinel-2:
+    image: redis:latest
+    container_name: sentinel-2
+    command: ["redis-sentinel", "/usr/local/etc/sentinel/sentinel.conf"]
+    volumes:
+      - ./sentinel-2.conf:/usr/local/etc/sentinel/sentinel.conf
+      - ./sentinel-2-data:/data
+    ports:
+      - "26379:26379"
+    depends_on:
+      - redis-replica-1
+    restart: unless-stopped
+    networks:
+      - redis-net
+
+networks:
+  redis-net:
+    driver: bridge
+volumes:
+  redis-replica-1-data: 
+  sentinel-2-data:

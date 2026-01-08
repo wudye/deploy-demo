@@ -1,0 +1,18 @@
+# overlays/dev/kustomization.yml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: spring-on-k8s-dev
+bases:
+- ../../base
+
+configMapGenerator:
+- name: config
+  behavior: merge  # 合并基础配置
+  literals:
+    - app.message=Hello Development!
+    - app.environment=dev
+    - debug.enabled=true
+    - logging.level.root=DEBUG
+
+patchesStrategicMerge:
+- deployment-dev.yml

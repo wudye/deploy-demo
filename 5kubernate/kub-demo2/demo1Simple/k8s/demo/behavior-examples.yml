@@ -1,0 +1,22 @@
+# 不同行为的 ConfigMap 生成
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+# create: 创建新的 ConfigMap（默认行为）
+- name: new-config
+  behavior: create
+  literals:
+    - new.feature.enabled=true
+
+# replace: 替换现有的 ConfigMap
+- name: existing-config
+  behavior: replace
+  literals:
+    - existing.setting=new-value
+
+# merge: 与现有配置合并
+- name: base-config
+  behavior: merge
+  literals:
+    - additional.setting=true

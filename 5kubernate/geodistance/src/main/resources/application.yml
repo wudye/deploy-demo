@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: geodistance
+  config:
+    import: optional:file:.env[.properties]
+
+server:
+  port: 1441
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}

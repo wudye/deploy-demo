@@ -1,0 +1,10 @@
+yaml
+openapi: 3.0.3
+info:
+  title: my
+  version: "1.0"
+  description: study (java 25)
+  contact:
+    name: mwu
+    email: "<EMAIL>"
+paths: {}

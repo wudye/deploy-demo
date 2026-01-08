@@ -1,0 +1,82 @@
+# 这部分定义了如何将你的 Spring Boot 应用构建成可部署的容器镜像
+apiVersion: skaffold/v2beta22
+# 第二行 kind: Config 表示该文件的配置类型为 Config，即这是一个标准的 Skaffold 配置文件。它用于描述应用的构建、打包和部署流程，是 Skaffold 执行这些操作的入口点。
+kind: Config
+metadata:
+# 为项目指定了一个唯一的名称，便于在开发和部署过程中标识该项目
+# 这个名称通常用于区分不同的 Skaffold 配置，尤其是在一个仓库中包含多个项目或配置文件时。它不会直接影响应用的功能，但在日志输出或工具集成中可能会被引用。
+# skaffold.yaml 中的 metadata.name 是 Skaffold 配置/项目名，用于标识 Skaffold 配置，不等同于 Spring Boot 应用的名称
+name: sample-spring-boot-on-kubernetes
+
+#  Skaffold 中 jib 的 args（即 -Pjib 和 -DskipTests）会传给 Maven，-DskipTests 会跳过测试，效果与运行 mvn -DskipTests package 在跳过测试这一点上相同。
+#  不同点：mvn package 会在 target/ 下产出 jar；Jib 直接把应用打包成镜像（或推到 registry），不一定产出传统的 jar 文件。
+#  -Pjib 是激活名为 jib 的 Maven profile（如果你项目中有定义），这可能改变构建行为。
+#  如果你使用的是基于 Dockerfile 的 docker build 流程，则仍需先运行 mvn -DskipTests package 生成 jar，然后再 docker build。如果使用 Skaffold + Jib，则不需要先做 mvn package，Jib 会直接构建镜像。
+build:
+# 不想推到 Docker Hub
+local:
+push: false
+artifacts:
+  # 先用 Maven 打包得到 target/*.jar，然后用一个简单的 Dockerfile 把应用打成镜像并标记为 piomin/sample-spring-boot-on-kubernetes。
+  # 若你在本机启用了 Kubernetes（Docker Desktop / minikube / kind），集群是否能直接使用本地镜像取决于集群类型；必要时把镜像推到可访问的镜像仓库或者使用对应工具把镜像导入到集群
+  - image: piomin/sample-spring-boot-on-kubernetes
+jib:
+args:
+  - -Pjib
+  - -DskipTests
+
+
+#  本地/开发：用 docker compose（用 docker-compose.yml 定义服务），然后 docker compose up -d。这最接近 k8s 的 Pod/Service 概念。
+#  集群/生产：用 Docker Swarm 的 docker stack deploy，docker-compose 文件里可以包含 deploy 字段（如 replicas、资源限制等），这些只有在 Swarm 模式下生效。
+
+# 使用 kubectl 部署，指定了两个 Kubernetes 清单文件：k8s/mongodb-deployment.yaml 和 k8s/deployment.yaml。
+# 如何将构建好的应用部署到 Kubernetes 集群中。它使用原生的 kubectl 工具来应用 Kubernetes 清单文件。
+deploy:
+# 为什么选择 kubectl？
+#🔧 原生支持：直接使用 Kubernetes 标准工具
+#🎯 精确控制：完全掌控部署过程
+#🐛 调试友好：可以使用熟悉的 kubectl 命令调试
+#🔄 兼容性强：支持所有 Kubernetes 版本
+kubectl:
+manifests:
+  - k8s/mongodb-deployment.yaml
+  - k8s/deployment.yaml
+# profiles 部分定义了两个可选的配置，用于切换不同的构建或部署策略：
+profiles:
+  # knative profile 定义了使用 Knative Serving 部署应用的配置。Knative 是 Kubernetes 上的 serverless 平台，提供自动扩缩容和按需激活功能。
+  - name: knative
+    deploy:
+    kubectl:
+    manifests:
+      - k8s/knative-service.yaml
+  # buildpacks Profile：使用 Buildpacks 构建镜像，指定了 paketobuildpacks/builder:base 作为构建器，并使用了 paketo-buildpacks/adoptium 和
+  #paketo-buildpacks/java 两个 Buildpacks。还设置了环境变量 BP_JVM_VERSION=17，指定 JVM 版本为 17
+  - name: buildpacks
+    build:
+    # Paketo Buildpacks？
+    #🏭 云原生标准：CNCF 认证的 buildpack 实现
+    #🔧 多语言支持：支持 Java、Node.js、Python、Go 等
+    #🚀 高度优化：针对云环境优化的基础镜像
+    #🔒 安全扫描：内置安全漏洞扫描
+    artifacts:
+      - image: piomin/sample-spring-boot-on-kubernetes
+    buildpacks:
+    builder: paketobuildpacks/builder:base
+    #          builder: gcr.io/buildpacks/builder:v1
+    #          builder: heroku/buildpacks:20
+    buildpacks:
+      #            - paketo-buildpacks/eclipse-openj9
+      #            - paketo-buildpacks/amazon-corretto
+      #            - paketo-buildpacks/oracle
+      - paketo-buildpacks/adoptium
+      #            - paketo-buildpacks/azul-zulu
+      #            - paketo-buildpacks/alibaba-dragonwell
+      #            - paketo-buildpacks/microsoft-openjdk
+      - paketo-buildpacks/java
+    env:
+      - BP_JVM_VERSION=21
+#            - GOOGLE_RUNTIME_VERSION=17
+#    tagPolicy:
+#      envTemplate:
+#        template: "{{.VENDOR}}"
+

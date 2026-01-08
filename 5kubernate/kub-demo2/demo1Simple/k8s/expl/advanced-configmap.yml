@@ -1,0 +1,47 @@
+# === 高级 ConfigMap 配置示例 ===
+
+# kustomization.yml
+configMapGenerator:
+- name: config
+  literals:
+    - app.message=Hello Kubernetes!
+    - app.name=DemoApplication
+    - app.version=1.0.0
+    
+- name: database-config
+  literals:
+    - db.url=jdbc:postgresql://postgres:5432/myapp
+    - db.username=appuser
+    - db.maxConnections=10
+
+# === 生成的文件系统结构 ===
+/etc/config/
+├── app.message       # "Hello Kubernetes!"
+├── app.name         # "DemoApplication"
+├── app.version      # "1.0.0"
+
+/etc/database-config/
+├── db.url           # "jdbc:postgresql://postgres:5432/myapp"
+├── db.username      # "appuser"
+└── db.maxConnections # "10"
+
+# === Deployment 配置对应修改 ===
+env:
+- name: SPRING_CONFIG_IMPORT
+  value: |
+    configtree:/etc/config/,
+    configtree:/etc/database-config/
+
+volumeMounts:
+- mountPath: /etc/config
+  name: config
+- mountPath: /etc/database-config
+  name: database-config
+
+volumes:
+- name: config
+  configMap:
+    name: config
+- name: database-config
+  configMap:
+    name: database-config
