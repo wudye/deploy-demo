@@ -1,0 +1,64 @@
+spring:
+  datasource:
+    hikari:
+      poolName: Hikari-MySQL
+      maximum-pool-size: 30  # MySQL 建议更大
+      minimum-idle: 15
+
+    url: jdbc:mysql://localhost:3306/whatsappclone?\
+      useSSL=false&\
+      useUnicode=true&\
+      characterEncoding=UTF-8&\
+      serverTimezone=Europe/Vienna&\
+      allowPublicKeyRetrieval=true&\
+      useLocalSessionState=true&\
+      rewriteBatchedStatements=true&\
+      cachePrepStmts=true&\
+      prepStmtCacheSize=250&\
+      prepStmtCacheSqlLimit=2048&\
+      useServerPrepStmts=true&\
+      useLocalTransactionState=true&\
+      zeroDateTimeBehavior=convertToNull&\
+      autoReconnect=true
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect  # MySQL 8.0+
+
+        jdbc:
+          # MySQL 批量优化
+          batch_size: 25
+          batch_versioned_data: false  # MySQL 不支持
+          order_inserts: true
+          order_updates: true
+
+          # 二进制流
+          use_streams_for_binary: true
+
+          # 大对象
+          lob:
+            non_contextual_creation: true
+
+          # 时区（MySQL 必须设置）
+          time_zone: Europe/Vienna
+
+        query:
+          # MySQL 查询优化
+          cache_queries: true
+          query_plan_cache_max_size: 2048
+
+
+  参数	值	说明
+  useSSL	false	是否使用 SSL
+  useUnicode	true	使用 Unicode
+  characterEncoding	UTF-8	字符编码
+  serverTimezone	Europe/Vienna	服务器时区
+  allowPublicKeyRetrieval	true	允许公钥检索
+  rewriteBatchedStatements	true	重写批量语句（性能提升）
+  cachePrepStmts	true	缓存预编译语句
+  prepStmtCacheSize	250	预编译语句缓存大小
+  prepStmtCacheSqlLimit	2048	预编译语句缓存 SQL 限制
+  useServerPrepStmts	true	使用服务器预编译语句
+  zeroDateTimeBehavior	convertToNull	零日期时间行为
+  autoReconnect	true	自动重连

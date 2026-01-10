@@ -1,0 +1,229 @@
+spring:
+  application:
+    name: Whatsappclone
+
+  config:
+    import: optional:file:.env
+
+  # ============================================
+  # 虚拟线程配置（通用）
+  # ============================================
+  threads:
+    virtual:
+      enabled: true
+
+  # ============================================
+  # PostgreSQL 数据源配置
+  # ============================================
+  datasource:
+    # HikariCP 连接池配置
+    hikari:
+      # 连接池名称
+      poolName: Hikari-PostgreSQL
+
+      # 自动提交（false 由事务管理器控制）
+      auto-commit: false
+
+      # 连接池大小（根据 CPU 核心数调整）
+      maximum-pool-size: 20
+      minimum-idle: 10
+
+      # 连接超时设置
+      connection-timeout: 30000        # 30 秒
+      idle-timeout: 600000             # 10 分钟
+      max-lifetime: 1800000            # 30 分钟
+
+      # 连接测试配置
+      connection-test-query: SELECT 1
+      validation-timeout: 5000         # 5 秒
+
+      # 泄漏检测
+      leak-detection-threshold: 60000  # 1 分钟（开发环境）
+      # 生产环境建议设为 0（禁用）
+
+    # PostgreSQL 连接参数
+    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:5432/${POSTGRESQL_DB:whatsappclone}?\
+      useSSL=${POSTGRESQL_SSL:false}&\
+      stringtype=unspecified&\
+      reWriteBatchedInserts=true&\
+      ApplicationName=WhatsappClone
+
+    username: ${POSTGRESQL_USERNAME:postgres}
+    password: ${POSTGRESQL_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+
+  # ============================================
+  # JPA 仓库配置
+  # ============================================
+  data:
+    jpa:
+      repositories:
+        bootstrap-mode: deferred
+
+  # ============================================
+  # JPA/Hibernate 配置
+  # ============================================
+  jpa:
+    properties:
+      hibernate:
+        # ============================================
+        # JDBC 配置
+        # ============================================
+        jdbc:
+          # 时区设置
+          time_zone: Europe/Vienna
+
+          # 批量操作配置
+          batch_size: 25
+          batch_versioned_data: true  # PostgreSQL 支持
+
+          # 获取批量大小
+          fetch_size: 100
+
+          # 批量插入优化
+          order_inserts: true
+          order_updates: true
+
+        # ============================================
+        # 查询优化
+        # ============================================
+        query:
+          # 分页集合抓取失败检测
+          fail_on_pagination_over_collection_fetch: true
+
+          # IN 子句参数填充
+          in_clause_parameter_padding: true
+
+          # 查询缓存
+          cache_queries: true
+
+          # 查询计划缓存
+          query_plan_cache_max_size: 2048
+          query_plan_cache_max_strong_reference_count: 128
+
+        # ============================================
+        # 统计信息
+        # ============================================
+        generate_statistics: false  # 生产环境
+        # generate_statistics: true  # 开发/测试环境
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true  # 在 SQL 中添加注释
+
+        # ============================================
+        # 连接配置
+        # ============================================
+        connection:
+          provider_disables_autocommit: true
+          autocommit: false
+          release_mode: auto
+          handeling_mode: delayed_acquisition_and_release_after_statement
+
+          # 连接池提供者
+          provider_class: org.hibernate.hikaricp.internal.HikariCPConnectionProvider
+
+        # ============================================
+        # 命名策略
+        # ============================================
+        default_schema: whatsappclone
+        implicit_naming_strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
+        # ============================================
+        # 缓存配置
+        # ============================================
+        cache:
+          use_second_level_cache: false  # 生产环境默认 false
+          use_query_cache: false
+          region:
+            factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+
+        # ============================================
+        # DDL 配置
+        # ============================================
+        ddl-auto: none
+        # ddl-auto: validate  # 开发环境
+        # ddl-auto: update    # 测试环境
+
+        # ============================================
+        # 方言配置
+        # ============================================
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # dialect: org.hibernate.dialect.PostgreSQL95Dialect  # PostgreSQL 9.5+
+        # dialect: org.hibernate.dialect.PostgreSQL10Dialect   # PostgreSQL 10+
+
+        # ============================================
+        # PostgreSQL 特定配置
+        # ============================================
+        jdbc:
+          lob:
+            non_contextual_creation: true  # 支持大对象
+          batch_versioned_data: true
+          time_zone: Europe/Vienna
+
+    # ============================================
+    # Open Session In View
+    # ============================================
+    open-in-view: false
+
+  # ============================================
+  # Flyway 配置（数据库迁移）
+  # ============================================
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    schemas: whatsappclone
+    out-of-order: false
+    validate-on-migrate: true
+
+  # ============================================
+  # Liquibase 配置（替代 Flyway）
+  # ============================================
+  liquibase:
+    enabled: false  # 如果使用 Flyway，禁用 Liquibase
+    change-log: classpath:db/changelog/master.xml
+    default-schema: whatsappclone
+    contexts: dev
+
+# ============================================
+# 服务器配置
+# ============================================
+server:
+  port: 8080
+  compression:
+    enabled: true
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 20000
+
+# ============================================
+# 日志配置
+# ============================================
+logging:
+  level:
+    ROOT: INFO
+    org.hibernate.SQL: DEBUG        # 输出 SQL
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 输出参数值
+    com.zaxxer.hikari: DEBUG       # 连接池日志
+    com.mwu.whatsappclone: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# ============================================
+# 管理端点配置
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+    metrics:
+      enabled: true

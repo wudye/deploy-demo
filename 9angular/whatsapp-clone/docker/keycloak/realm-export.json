@@ -1,0 +1,103 @@
+{
+  "realm": "whatsapp-clone",
+  "enabled": true,
+  "sslRequired": "NONE",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": true,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrator role"
+      },
+      {
+        "name": "USER",
+        "description": "Regular user role"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "adminuser",
+      "email": "adminuser@example.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN",
+        "USER"
+      ],
+      "clientRoles": {},
+      "groups": []
+    },
+    {
+      "username": "commonuser",
+      "email": "commonuser@example.com",
+      "firstName": "Common",
+      "lastName": "User",
+      "emailVerified": true,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER"
+      ],
+      "clientRoles": {},
+      "groups": []
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "whatsapp-clone-client",
+      "name": "WhatsApp Clone Client",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["http://localhost:4200/*",         "http://localhost:9080/realms/whatsapp-clone/account/*"],
+      "webOrigins": ["http://localhost:4200",         "http://localhost:9080"
+      ],
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "3600",
+        "pkce.code.challenge.method": "S256"
+
+      },
+      "protocolMappers": [
+        {
+          "name": "realm_access",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": true,
+            "userinfo.token.claim": true,
+            "id.token.claim": true,
+            "access.token.claim": true,
+            "claim.name": "roles"
+          }
+        }
+      ]
+    }
+  ]
+}

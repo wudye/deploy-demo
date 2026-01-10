@@ -1,0 +1,52 @@
+spring:
+  datasource:
+    hikari:
+      poolName: Hikari-PostgreSQL
+      maximum-pool-size: 20
+      minimum-idle: 10
+
+    url: jdbc:postgresql://localhost:5432/whatsappclone?\
+      useSSL=false&\
+      stringtype=unspecified&\
+      reWriteBatchedInserts=true&\
+      ApplicationName=WhatsappClone
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+        jdbc:
+          # PostgreSQL 批量优化
+          batch_size: 25
+          batch_versioned_data: true  # 支持版本化数据
+          order_inserts: true
+          order_updates: true
+
+          # 大对象支持
+          lob:
+            non_contextual_creation: true
+
+          # 获取大小
+          fetch_size: 100
+
+          # 时区
+          time_zone: Europe/Vienna
+
+        query:
+          # 查询缓存
+          cache_queries: true
+          query_plan_cache_max_size: 2048
+
+        cache:
+          use_second_level_cache: false
+#
+
+
+  参数	值	说明
+  useSSL	false	是否使用 SSL
+  stringtype	unspecified	字符串类型处理
+  reWriteBatchedInserts	true	重写批量插入（性能提升）
+  ApplicationName	WhatsappClone	应用名称（监控用）
+  prepareThreshold	5	预编译语句阈值
+  binaryTransferEnable	UUID	二进制传输启用
